@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Pipeline GitLab CI — Hightechshop
+# Exécute les tests unitaires front-end à chaque push ou merge request.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Image Node.js utilisée pour tous les jobs
+image: node:22-alpine
+
+# Étapes du pipeline (dans l'ordre d'exécution)
+stages:
+  - test
+
+# ── Cache des dépendances ─────────────────────────────────────────────────────
+# Évite de retélécharger node_modules à chaque pipeline
+cache:
+  key:
+    files:
+      - myprojet/package-lock.json
+  paths:
+    - myprojet/node_modules/
+
+# ── Job : tests unitaires front-end ──────────────────────────────────────────
+test:front-end:
+  stage: test
+
+  # Répertoire de travail du job
+  before_script:
+    - cd myprojet
+    - npm ci --prefer-offline
+
+  script:
+    - npm test -- --run --reporter=verbose
+
+  # Déclenché sur tous les pushs et toutes les merge requests
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+  # Artefacts : rapport de tests conservé 7 jours
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - myprojet/test-results/

@@ -172,9 +172,10 @@ function Inscription() {
   };
 
   const validatePassword = (value) => {
-    if (!value.trim())              return "Le mot de passe est requis.";
-    if (value.length < 12)          return "12 caractères minimum.";
-    if (!/[A-Z]/.test(value))       return "Au moins une majuscule requise.";
+    if (!value.trim())               return "Le mot de passe est requis.";
+    if (value.length < 12)           return "12 caractères minimum.";
+    if (!/[A-Z]/.test(value))        return "Au moins une majuscule requise.";
+    if (!/[0-9]/.test(value))        return "Au moins un chiffre requis.";
     if (!/[^A-Za-z0-9]/.test(value)) return "Au moins un caractère spécial requis.";
     return "";
   };

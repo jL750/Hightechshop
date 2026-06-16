@@ -94,6 +94,95 @@ describe('Page d\'inscription', () => {
     expect(screen.queryByText(/12 caractères minimum/i)).not.toBeInTheDocument();
   });
 
+  // ── SCÉNARIO 3b : Validation mot de passe — majuscule ────────────────────
+
+  it('affiche une erreur si le mot de passe n\'a pas de majuscule', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText('Mot de passe'), 'monmotdepasse1!');
+
+    expect(await screen.findByText(/au moins une majuscule/i)).toBeInTheDocument();
+  });
+
+  it('refuse la soumission si le mot de passe n\'a pas de majuscule', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await remplirFormulaire(user, {
+      password:        'monmotdepasse1!',
+      confirmPassword: 'monmotdepasse1!',
+    });
+    await user.click(screen.getByRole('button', { name: /s'inscrire/i }));
+
+    expect(await screen.findByText(/au moins une majuscule/i)).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  // ── SCÉNARIO 3c : Validation mot de passe — chiffre ──────────────────────
+
+  it('affiche une erreur si le mot de passe n\'a pas de chiffre', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText('Mot de passe'), 'MonMotDePasse!');
+
+    expect(await screen.findByText(/au moins un chiffre/i)).toBeInTheDocument();
+  });
+
+  it('refuse la soumission si le mot de passe n\'a pas de chiffre', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await remplirFormulaire(user, {
+      password:        'MonMotDePasse!',
+      confirmPassword: 'MonMotDePasse!',
+    });
+    await user.click(screen.getByRole('button', { name: /s'inscrire/i }));
+
+    expect(await screen.findByText(/au moins un chiffre/i)).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  // ── SCÉNARIO 3d : Validation mot de passe — caractère spécial ────────────
+
+  it('affiche une erreur si le mot de passe n\'a pas de caractère spécial', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText('Mot de passe'), 'MonMotDePasse1');
+
+    expect(await screen.findByText(/au moins un caractère spécial/i)).toBeInTheDocument();
+  });
+
+  it('refuse la soumission si le mot de passe n\'a pas de caractère spécial', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await remplirFormulaire(user, {
+      password:        'MonMotDePasse1',
+      confirmPassword: 'MonMotDePasse1',
+    });
+    await user.click(screen.getByRole('button', { name: /s'inscrire/i }));
+
+    expect(await screen.findByText(/au moins un caractère spécial/i)).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  // ── SCÉNARIO 3e : Mot de passe valide (toutes règles respectées) ──────────
+
+  it('n\'affiche aucune erreur avec un mot de passe valide', async () => {
+    renderInscription();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText('Mot de passe'), 'MonMot2Passe!');
+
+    expect(screen.queryByText(/12 caractères minimum/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/au moins une majuscule/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/au moins un chiffre/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/au moins un caractère spécial/i)).not.toBeInTheDocument();
+  });
+
   // ── SCÉNARIO 4 : Validation mot de passe — champ vide ────────────────────
 
   it('affiche une erreur si le champ mot de passe est vidé après saisie', async () => {

@@ -19,13 +19,26 @@ const Produit     = require("../models/Produit");
 
 class FavorisController {
 
-  // GET /api/favoris — retourne les favoris de l'utilisateur connecté
+  // GET /api/favoris — retourne les favoris enrichis avec les données MySQL
   async getFavoris(req, res) {
     try {
       let fav = await Favoris.findOne({ utilisateur_id: req.user.idUser });
-      // Si aucun document n'existe encore, on retourne un objet vide (pas d'erreur)
-      if (!fav) fav = { utilisateur_id: req.user.idUser, produits: [] };
-      res.json(fav);
+      if (!fav) return res.json({ utilisateur_id: req.user.idUser, produits: [] });
+
+      // Récupérer les données complètes depuis MySQL pour chaque produit favori
+      const ids      = fav.produits.map(p => p.idProduit);
+      const produits = await Produit.findAll({ where: { idProduit: ids } });
+      const map      = Object.fromEntries(produits.map(p => [p.idProduit, p]));
+
+      const enrichis = fav.produits.map(p => ({
+        ...p.toObject(),
+        description: map[p.idProduit]?.description || p.description || null,
+        image:       map[p.idProduit]?.image       || p.image       || null,
+        prix:        map[p.idProduit]?.prix        || p.prix,
+        nom:         map[p.idProduit]?.nom         || p.nom,
+      }));
+
+      res.json({ ...fav.toObject(), produits: enrichis });
     } catch (err) {
       console.error("[Favoris] getFavoris :", err.message);
       res.status(500).json({ message: err.message });
@@ -49,10 +62,11 @@ class FavorisController {
         fav = new Favoris({
           utilisateur_id: req.user.idUser,
           produits: [{
-            idProduit: produit.idProduit,
-            nom:       produit.nom,
-            prix:      parseFloat(produit.prix),
-            image:     produit.image || null,
+            idProduit:   produit.idProduit,
+            nom:         produit.nom,
+            prix:        parseFloat(produit.prix),
+            image:       produit.image       || null,
+            description: produit.description || null,
           }],
         });
       } else {
@@ -61,10 +75,11 @@ class FavorisController {
         if (existe) return res.status(409).json({ message: "Déjà dans les favoris." });
 
         fav.produits.push({
-          idProduit: produit.idProduit,
-          nom:       produit.nom,
-          prix:      parseFloat(produit.prix),
-          image:     produit.image || null,
+          idProduit:   produit.idProduit,
+          nom:         produit.nom,
+          prix:        parseFloat(produit.prix),
+          image:       produit.image       || null,
+          description: produit.description || null,
         });
         fav.date_modification = new Date();
         fav.markModified("produits");

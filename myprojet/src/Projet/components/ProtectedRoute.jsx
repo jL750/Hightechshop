@@ -22,14 +22,16 @@ import { UserContext } from "../Context/UserContext.jsx";
 
 // Protège les routes nécessitant une connexion client
 export function ProtectedRoute() {
-  const { user } = useContext(UserContext);
+  const { user, initializing } = useContext(UserContext);
+  if (initializing) return null; // attend la fin du refresh avant de décider
   if (!user) return <Navigate to="/connexion" replace />;
   return <Outlet />;
 }
 
 // Protège les routes réservées aux administrateurs
 export function AdminRoute() {
-  const { user } = useContext(UserContext);
+  const { user, initializing } = useContext(UserContext);
+  if (initializing)            return null;
   if (!user)                   return <Navigate to="/connexion" replace />;
   if (user.role !== "admin")   return <Navigate to="/home" replace />;
   return <Outlet />;

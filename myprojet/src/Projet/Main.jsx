@@ -17,7 +17,6 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // ── Guards de routes ──────────────────────────────────────────────────────────
@@ -31,7 +30,7 @@ import Catalogue   from "./Catalogue.jsx";
 
 // ── Pages client (connexion requise) ─────────────────────────────────────────
 import Panier     from "./Panier.jsx";
-import MonEspace  from "./MonEspace.jsx";
+import MonEspace  from "./pages/client/MonEspace.jsx";
 import Favoris    from "./pages/client/Favoris.jsx";
 import Profil     from "./pages/client/Profil.jsx";
 import Historique from "./pages/client/Historique.jsx";

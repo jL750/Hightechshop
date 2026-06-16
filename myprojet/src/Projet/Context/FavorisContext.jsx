@@ -22,12 +22,13 @@ export const FavorisContext = createContext(null);
 export function FavorisProvider({ children }) {
   const { user, accessToken } = useContext(UserContext);
   const [items, setItems]     = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Charger les favoris depuis MongoDB à chaque connexion/déconnexion
   useEffect(() => {
     if (!user || !accessToken) {
-      setItems([]); // Vider les favoris à la déconnexion
+      setItems([]);
+      setLoading(false);
       return;
     }
     const charger = async () => {
@@ -35,6 +36,13 @@ export function FavorisProvider({ children }) {
       try {
         const fav = await favorisService.getFavoris(accessToken);
         setItems(fav?.produits || []);
+
+        const pending = sessionStorage.getItem("pendingFavori");
+        if (pending) {
+          sessionStorage.removeItem("pendingFavori");
+          const updated = await favorisService.addFavori(accessToken, pending);
+          setItems(updated.produits || []);
+        }
       } catch {
         setItems([]);
       } finally {

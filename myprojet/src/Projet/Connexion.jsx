@@ -39,7 +39,6 @@ function Connexion() {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, password: value, error: "", success: "" }));
     if (!value.trim()) setErreurPassword("Le mot de passe est requis.");
-    else if (value.length < 8) setErreurPassword("8 caractères minimum.");
     else setErreurPassword("");
   };
 
@@ -74,8 +73,13 @@ function Connexion() {
         setFormData({ email: "", password: "", error: "", success: "✅ Connexion réussie !" });
         setErreurEmail("");
         setErreurPassword("");
-        login(data.user, data.accessToken); // refreshToken géré automatiquement via cookie
-        setTimeout(() => navigate("/mon-espace"), 1000);
+        login(data.user, data.accessToken);
+        const isAdmin  = data.user?.role === "admin";
+        const redirect = isAdmin
+          ? "/admin"
+          : sessionStorage.getItem("pendingRedirect") || "/mon-espace";
+        sessionStorage.removeItem("pendingRedirect");
+        setTimeout(() => navigate(redirect), 1000);
       }
     } catch {
       setFormData((prev) => ({ ...prev, error: "Erreur serveur. Réessayez.", success: "" }));

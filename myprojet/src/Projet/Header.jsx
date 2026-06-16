@@ -328,17 +328,19 @@ function Header() {
             </Link>
           )}
 
-          {/* Icône Panier avec badge quantité */}
-          <Link
-            to="/panier"
-            style={s.iconBtn("/panier")}
-            onMouseEnter={() => setHovered("/panier")}
-            onMouseLeave={() => setHovered(null)}
-            title="Mon panier"
-          >
-            🛒
-            {nbPanier > 0 && <span style={s.badge}>{nbPanier}</span>}
-          </Link>
+          {/* Icône Panier avec badge quantité — visible uniquement si connecté */}
+          {user && (
+            <Link
+              to="/panier"
+              style={s.iconBtn("/panier")}
+              onMouseEnter={() => setHovered("/panier")}
+              onMouseLeave={() => setHovered(null)}
+              title="Mon panier"
+            >
+              🛒
+              {nbPanier > 0 && <span style={s.badge}>{nbPanier}</span>}
+            </Link>
+          )}
 
           {/* ── Utilisateur connecté ─────────────────────────────────── */}
           {user ? (

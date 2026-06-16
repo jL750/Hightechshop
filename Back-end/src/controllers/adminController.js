@@ -17,6 +17,7 @@ const User          = require("../models/User");
 const Produit       = require("../models/Produit");
 const Commande      = require("../models/Commande");
 const LoginAttempts = require("../models/LoginAttempts");
+const { LogAdmin }  = require("../models/mongo");
 
 // ── UTILISATEURS ──────────────────────────────────────────────────────────────
 
@@ -160,7 +161,7 @@ exports.updateStatutCommande = async (req, res) => {
 
 // ── LOGS ──────────────────────────────────────────────────────────────────────
 
-// GET /api/admin/logs
+// GET /api/admin/logs — tentatives de connexion (MySQL)
 exports.getLogs = async (req, res) => {
   try {
     const logs = await LoginAttempts.findAll({
@@ -170,6 +171,25 @@ exports.getLogs = async (req, res) => {
     res.json(logs);
   } catch (err) {
     console.error("[Admin] getLogs :", err.message);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+};
+
+// GET /api/admin/action-logs — actions admin (MongoDB), enrichies avec les infos utilisateur MySQL
+exports.getActionLogs = async (req, res) => {
+  try {
+    const logs = await LogAdmin.find().sort({ date: -1 }).limit(300).lean();
+
+    const ids   = [...new Set(logs.map(l => l.utilisateur_id))];
+    const users = await User.findAll({
+      where:      { idUser: ids },
+      attributes: ["idUser", "nom", "prenom", "email"],
+    });
+    const userMap = Object.fromEntries(users.map(u => [u.idUser, u.toJSON()]));
+
+    res.json(logs.map(l => ({ ...l, user: userMap[l.utilisateur_id] || null })));
+  } catch (err) {
+    console.error("[Admin] getActionLogs :", err.message);
     res.status(500).json({ message: "Erreur serveur." });
   }
 };

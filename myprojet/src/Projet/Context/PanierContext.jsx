@@ -25,9 +25,16 @@ export function PanierProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   // Charger le panier MongoDB à la connexion, vider à la déconnexion
+  // Si un produit était en attente (ajout avant connexion), l'ajouter automatiquement
   useEffect(() => {
     if (!user || !accessToken) {
       setItems([]);
+      return;
+    }
+    // Les admins n'ont pas de panier — on nettoie le pending sans le sauvegarder
+    if (user.role === "admin") {
+      setItems([]);
+      sessionStorage.removeItem("pendingPanier");
       return;
     }
     const charger = async () => {
@@ -35,6 +42,14 @@ export function PanierProvider({ children }) {
       try {
         const cart = await cartService.getCart(accessToken);
         setItems(cart?.produits || []);
+
+        const pending = sessionStorage.getItem("pendingPanier");
+        if (pending) {
+          sessionStorage.removeItem("pendingPanier");
+          const produit = JSON.parse(pending);
+          const updated = await cartService.addItem(accessToken, produit.idProduit, 1);
+          setItems(updated.produits || []);
+        }
       } catch {
         setItems([]);
       } finally {

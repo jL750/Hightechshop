@@ -1,85 +1,75 @@
-import { useContext } from "react";
+import { useState, useContext } from "react";
 import { PanierContext } from "./Context/PanierContext";
 
 function DetailProduitCatalogue({ produit, onClose }) {
   const { ajouterAuPanier } = useContext(PanierContext);
+  const [added, setAdded]   = useState(false);
 
-  const styles = {
-    overlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      backgroundColor: "rgba(0,0,0,0.5)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 1000,
-    },
-    modal: {
-      backgroundColor: "#fff",
-      borderRadius: "16px",
-      padding: "30px",
-      maxWidth: "500px",
-      width: "90%",
-      textAlign: "center",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-      position: "relative",
-    },
-    close: {
-      position: "absolute",
-      top: "10px",
-      right: "15px",
-      fontSize: "20px",
-      fontWeight: "bold",
-      cursor: "pointer",
-    },
-    image: {
-      width: "100%",
-      height: "250px",
-      objectFit: "contain",
-      borderRadius: "10px",
-      marginBottom: "15px",
-    },
-    name: { fontSize: "22px", fontWeight: "600", marginBottom: "10px" },
-    description: { fontSize: "16px", marginBottom: "15px", color: "#555" },
-    price: { fontSize: "18px", fontWeight: "500", marginBottom: "20px" },
-    button: {
-      padding: "12px 20px",
-      backgroundColor: "#4EA3FF",
-      border: "none",
-      borderRadius: "25px",
-      color: "#fff",
-      fontWeight: 500,
-      cursor: "pointer",
-      fontSize: "16px",
-      transition: "background-color 0.3s",
-    },
+  const handleAdd = () => {
+    ajouterAuPanier(produit);
+    setAdded(true);
+    setTimeout(() => { setAdded(false); onClose(); }, 1200);
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
-        <span style={styles.close} onClick={onClose}>×</span>
-        <img src={produit.image} alt={produit.nom} style={styles.image} />
-        <div style={styles.name}>{produit.nom}</div>
-        <div style={styles.description}>{produit.description}</div>
-        <div style={styles.price}>{produit.prix} €</div>
-        <button
-          style={styles.button}
-          onClick={() => {
-            ajouterAuPanier(produit);
-            onClose();
-          }}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = "#3793f5")}
-          onMouseLeave={(e) => (e.target.style.backgroundColor = "#4EA3FF")}
-        >
-          Ajouter au panier
-        </button>
+    <div style={s.overlay} onClick={onClose}>
+      <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+
+        {/* Bouton fermer */}
+        <button style={s.closeBtn} onClick={onClose}>✕</button>
+
+        {/* Image */}
+        <div style={s.imgWrap}>
+          <img
+            src={produit.image || "https://via.placeholder.com/400x280?text=Photo"}
+            alt={produit.nom}
+            style={s.img}
+          />
+        </div>
+
+        {/* Contenu */}
+        <div style={s.body}>
+          <h2 style={s.nom}>{produit.nom}</h2>
+
+          {produit.description && (
+            <p style={s.desc}>{produit.description}</p>
+          )}
+
+          <div style={s.footer}>
+            <span style={s.prix}>{Number(produit.prix).toFixed(2)} €</span>
+            <button
+              style={{
+                ...s.addBtn,
+                background: added
+                  ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                  : "linear-gradient(135deg,#4EA3FF,#2563eb)",
+              }}
+              onClick={handleAdd}
+            >
+              {added ? "✓ Ajouté au panier !" : "Ajouter au panier"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+const s = {
+  overlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(4px)", padding: "20px" },
+  modal:   { backgroundColor: "#fff", borderRadius: "20px", maxWidth: "480px", width: "100%", boxShadow: "0 24px 60px rgba(0,0,0,0.2)", overflow: "hidden", position: "relative" },
+
+  closeBtn: { position: "absolute", top: "14px", right: "14px", background: "rgba(0,0,0,0.06)", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "13px", color: "#555", zIndex: 1, lineHeight: 1 },
+
+  imgWrap: { background: "#fafafa", display: "flex", justifyContent: "center", alignItems: "center" },
+  img:     { width: "100%", height: "240px", objectFit: "contain", padding: "20px", boxSizing: "border-box" },
+
+  body:   { padding: "20px 24px 24px" },
+  nom:    { fontSize: "20px", fontWeight: 700, color: "#111", marginBottom: "10px", lineHeight: 1.3 },
+  desc:   { fontSize: "14px", color: "#666", lineHeight: 1.6, marginBottom: "20px" },
+  footer: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" },
+  prix:   { fontSize: "26px", fontWeight: 800, color: "#111", letterSpacing: "-0.03em", flexShrink: 0 },
+  addBtn: { flex: 1, padding: "12px 20px", border: "none", borderRadius: "50px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px", transition: "background 0.25s ease" },
+};
 
 export default DetailProduitCatalogue;

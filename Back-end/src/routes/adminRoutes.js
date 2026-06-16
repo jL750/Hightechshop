@@ -35,6 +35,9 @@ router.get("/commandes",            adminCtrl.getCommandes);
 router.put("/commandes/:id/statut", adminCtrl.updateStatutCommande);
 
 // ── Logs de connexion (LoginAttempts) ─────────────────────────────────────────
-router.get("/logs", adminCtrl.getLogs);
+router.get("/logs",        adminCtrl.getLogs);
+
+// ── Logs des actions admin (MongoDB) ─────────────────────────────────────────
+router.get("/action-logs", adminCtrl.getActionLogs);
 
 module.exports = router;

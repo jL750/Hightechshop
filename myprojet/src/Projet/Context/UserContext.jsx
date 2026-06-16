@@ -5,6 +5,7 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser]               = useState(null);
   const [accessToken, setAccessToken] = useState(null); // en mémoire, jamais dans localStorage
+  const [initializing, setInitializing] = useState(true); // true tant que le refresh n'a pas répondu
   const timerRef = useRef(null);
 
   // Déconnexion complète
@@ -43,22 +44,22 @@ export const UserProvider = ({ children }) => {
   // Au rechargement de la page : tenter de restaurer la session via le cookie
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
-    if (!savedUser) return; // pas de session précédente connue
+    if (!savedUser) {
+      setInitializing(false); // pas de session à restaurer, on débloque immédiatement
+      return;
+    }
 
-    // Le cookie refreshToken est envoyé automatiquement par le navigateur
     fetch("http://localhost:3000/api/auth/refresh", {
       method: "POST",
-      credentials: "include", // envoie le cookie HttpOnly
+      credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.accessToken) {
-          // Token encore valide : on restaure la session
           setAccessToken(data.accessToken);
           setUser(JSON.parse(savedUser));
           startAutoLogout(15 * 60 * 1000);
         } else {
-          // Token expiré : on nettoie
           setUser(null);
           setAccessToken(null);
           localStorage.removeItem("user");
@@ -68,6 +69,9 @@ export const UserProvider = ({ children }) => {
         setUser(null);
         setAccessToken(null);
         localStorage.removeItem("user");
+      })
+      .finally(() => {
+        setInitializing(false); // session restaurée ou non, on débloque les routes
       });
 
     return () => {
@@ -76,7 +80,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, accessToken, login, logout }}>
+    <UserContext.Provider value={{ user, accessToken, initializing, login, logout }}>
       {children}
     </UserContext.Provider>
   );

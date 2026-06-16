@@ -38,8 +38,9 @@ function Connexion() {
   const PasswordChange = (e) => {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, password: value, error: "", success: "" }));
-    if (!value.trim()) setErreurPassword("Le mot de passe est requis.");
-    else setErreurPassword("");
+    if (!value.trim())           setErreurPassword("Le mot de passe est requis.");
+    else if (value.length < 8)   setErreurPassword("8 caractères minimum.");
+    else                         setErreurPassword("");
   };
 
   const handleSubmit = async (e) => {

@@ -171,13 +171,18 @@ function Inscription() {
     else setErreurEmail("");
   };
 
+  const validatePassword = (value) => {
+    if (!value.trim())              return "Le mot de passe est requis.";
+    if (value.length < 12)          return "12 caractères minimum.";
+    if (!/[A-Z]/.test(value))       return "Au moins une majuscule requise.";
+    if (!/[^A-Za-z0-9]/.test(value)) return "Au moins un caractère spécial requis.";
+    return "";
+  };
+
   const PasswordChange = (e) => {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, password: value, error: "", success: "" }));
-    if (!value.trim()) setErreurPassword("Le mot de passe est requis.");
-    else if (value.length < 12)
-      setErreurPassword("12 caractères minimum.");
-    else setErreurPassword("");
+    setErreurPassword(validatePassword(value));
   };
 
   const ConfirmPasswordChange = (e) => {
@@ -195,6 +200,11 @@ function Inscription() {
 
     if (!nom || !prenom || !email || !password || !confirmPassword) {
       setFormData((prev) => ({ ...prev, error: "Veuillez remplir tous les champs.", success: "" }));
+      return;
+    }
+    const pwErr = validatePassword(password);
+    if (pwErr) {
+      setErreurPassword(pwErr);
       return;
     }
     if (password !== confirmPassword) {

@@ -1,11 +1,22 @@
 import { useState, useContext } from "react";
+import { useNavigate }   from "react-router-dom";
 import { PanierContext } from "./Context/PanierContext";
+import { UserContext }   from "./Context/UserContext";
 
 function DetailProduitCatalogue({ produit, onClose }) {
   const { ajouterAuPanier } = useContext(PanierContext);
+  const { user }            = useContext(UserContext);
+  const navigate            = useNavigate();
   const [added, setAdded]   = useState(false);
 
   const handleAdd = () => {
+    if (!user) {
+      sessionStorage.setItem("pendingPanier",   JSON.stringify(produit));
+      sessionStorage.setItem("pendingRedirect", "/catalogue");
+      onClose();
+      navigate("/connexion");
+      return;
+    }
     ajouterAuPanier(produit);
     setAdded(true);
     setTimeout(() => { setAdded(false); onClose(); }, 1200);
